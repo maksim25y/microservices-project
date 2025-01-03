@@ -8,6 +8,11 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/springboot-microservice-realm
 
 eureka:
   client:

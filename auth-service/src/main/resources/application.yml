@@ -1,0 +1,13 @@
+
+spring:
+  application:
+    name: auth-service
+server:
+  port: 0
+
+client:
+  security:
+    client_id: ${CLIENT_ID:microservice-auth}
+    client_secret: ${CLIENT_SECRET:SSKMDDhEOcPwxld68i7tKgHFQ6eeQGkH}
+    grant_type: ${GRANT_TYPE:password}
+    token_url: ${TOKEN_URL:http://localhost:8080/realms/springboot-microservice-realm/protocol/openid-connect/token}
