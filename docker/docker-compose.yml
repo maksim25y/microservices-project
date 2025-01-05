@@ -5,7 +5,6 @@ services:
   registry:
     build:
       context: ../eureka-server
-      dockerfile: ../eureka-server/eureka.Dockerfile
     container_name: eureka_server
     restart: unless-stopped
     env_file:
@@ -19,12 +18,11 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - my_network
+      - backend
 
   auth-service:
     build:
       context: ../auth-service
-      dockerfile: ../auth-service/auth.Dockerfile
     container_name: auth-service
     restart: unless-stopped
     env_file:
@@ -35,12 +33,11 @@ services:
       registry:
         condition: service_healthy
     networks:
-      - my_network
+      - backend
 
   test-service:
     build:
       context: ../test-service
-      dockerfile: ../test-service/test.Dockerfile
     container_name: test-service
     restart: unless-stopped
     env_file:
@@ -51,12 +48,11 @@ services:
       registry:
         condition: service_healthy
     networks:
-      - my_network
+      - backend
 
   api-gateway:
     build:
       context: ../api-gateway
-      dockerfile: ../api-gateway/gateway.Dockerfile
     container_name: api_gateway
     restart: unless-stopped
     env_file:
@@ -71,8 +67,8 @@ services:
       test-service:
         condition: service_started
     networks:
-      - my_network
+      - backend
 
 networks:
-  my_network: {}
+  backend: {}
 
