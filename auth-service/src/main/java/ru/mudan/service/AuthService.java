@@ -1,6 +1,6 @@
 package ru.mudan.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -15,8 +15,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import ru.mudan.dto.AuthRequest;
 import ru.mudan.dto.TokenResponse;
-
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
