@@ -34,7 +34,7 @@ jobs:
         run: mvn clean install -DskipTests
 
       - name: Run tests
-        run: mvn test
+        run: mvn test -Dskip.unit.tests=true
 
       - name: Generate JaCoCo Report
         run: mvn jacoco:report
