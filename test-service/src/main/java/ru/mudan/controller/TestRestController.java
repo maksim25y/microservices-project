@@ -11,10 +11,10 @@ public class TestRestController {
 
     @GetMapping("/hello")
     public String hello(Authentication authentication) {
-        return "Hello, auth "+authentication.getName();
+        return "Hello, auth " + authentication.getName();
     }
 
-    @GetMapping("/hui")
+    @GetMapping("/h")
     public String hui() {
         return "Hello";
     }

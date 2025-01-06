@@ -1,10 +1,10 @@
 package ru.mudan;
 
+import java.util.stream.Stream;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,8 +17,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.stream.Stream;
-
+@SuppressWarnings("MultipleStringLiterals")
 @EnableDiscoveryClient
 @SpringBootApplication
 public class TestServiceApplication {
@@ -26,6 +25,7 @@ public class TestServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(TestServiceApplication.class, args);
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
