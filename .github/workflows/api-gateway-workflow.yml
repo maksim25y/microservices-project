@@ -1,4 +1,4 @@
-name: Auth service module workflow
+name: Api gateway module workflow
 
 on:
   pull_request:
