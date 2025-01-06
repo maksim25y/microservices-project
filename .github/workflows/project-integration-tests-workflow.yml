@@ -1,9 +1,10 @@
-name: Project tests
+name: Project integration tests
 
 on:
   pull_request:
     branches:
       - master
+      - develop
     paths:
       - 'api-gateway/**'
       - 'auth-service/**'
@@ -33,7 +34,7 @@ jobs:
         run: mvn clean install -DskipTests
 
       - name: Run tests
-        run: mvn test
+        run: mvn install -Dskip.unit.tests=true
 
       - name: Generate JaCoCo Report
         run: mvn jacoco:report
