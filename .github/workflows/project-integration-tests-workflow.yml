@@ -1,4 +1,4 @@
-name: Project tests
+name: Project integration tests
 
 on:
   pull_request:
