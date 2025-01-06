@@ -1,0 +1,49 @@
+name: Project tests
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'api-gateway/**'
+      - 'auth-service/**'
+      - 'test-service/**'
+      - 'eureka-server/**'
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Integration Testing
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run Maven clean install
+        run: mvn clean install -DskipTests
+
+      - name: Run tests
+        run: mvn test
+
+      - name: Generate JaCoCo Report
+        run: mvn jacoco:report
+
+      - name: Add coverage to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.7.1
+        with:
+          paths: ${{ github.workspace }}/**/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 0
+          min-coverage-changed-files: 0
