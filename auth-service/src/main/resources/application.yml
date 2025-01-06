@@ -1,0 +1,22 @@
+
+spring:
+  application:
+    name: auth-service
+server:
+  port: 8082
+
+eureka:
+  instance:
+    hostname: localhost
+    non-secure-port: 8082
+    prefer-ip-address: false
+  client:
+    serviceUrl:
+      defaultZone: http://host.docker.internal:8761/eureka/
+
+client:
+  security:
+    client_id: ${CLIENT_ID:microservice-auth}
+    client_secret: ${CLIENT_SECRET:Gnull7gzrNDbbIIZxOQKTUFBwU9LtH2x}
+    grant_type: ${GRANT_TYPE:password}
+    token_url: ${TOKEN_URL:http://host.docker.internal:8080/realms/springboot-microservice-realm/protocol/openid-connect/token}

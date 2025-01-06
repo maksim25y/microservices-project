@@ -1,0 +1,78 @@
+#include:
+#  - keycloak-compose.yml
+
+services:
+  registry:
+    build:
+      context: ../
+      dockerfile: ./eureka-server/Dockerfile
+    container_name: eureka_server
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  auth-service:
+    build:
+      context: ../
+      dockerfile: ./auth-service/Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8082:8082"
+    depends_on:
+      registry:
+        condition: service_healthy
+    networks:
+      - backend
+
+  test-service:
+    build:
+      context: ../
+      dockerfile: ./test-service/Dockerfile
+    container_name: test-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8083:8083"
+    depends_on:
+      registry:
+        condition: service_healthy
+    networks:
+      - backend
+
+  api-gateway:
+    build:
+      context: ../
+      dockerfile: ./api-gateway/Dockerfile
+    container_name: api_gateway
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8765:8765"
+    depends_on:
+      registry:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      test-service:
+        condition: service_started
+    networks:
+      - backend
+
+networks:
+  backend: {}
+

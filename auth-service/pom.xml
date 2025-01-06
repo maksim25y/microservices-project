@@ -10,20 +10,26 @@
     </parent>
 
     <packaging>jar</packaging>
-    <artifactId>api-gateway</artifactId>
+    <artifactId>auth-service</artifactId>
     <version>${revision}</version>
-    <name>api-gateway</name>
-    <description>api-gateway</description>
+    <name>auth-service</name>
+    <description>auth-service</description>
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -38,7 +44,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>ru.mudan.ApiGatewayApplication</mainClass>
+                    <mainClass>ru.mudan.AuthServiceApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>
