@@ -1,4 +1,4 @@
-name: Auth service module workflow
+name: Test service module workflow
 
 on:
   pull_request:
