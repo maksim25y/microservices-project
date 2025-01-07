@@ -1,6 +1,7 @@
 FROM maven:3.9.7-eclipse-temurin-21 AS dependencies
 WORKDIR /opt/app
 COPY pom.xml .
+COPY config-server/pom.xml config-server/pom.xml
 COPY eureka-server/pom.xml eureka-server/pom.xml
 COPY api-gateway/pom.xml api-gateway/pom.xml
 COPY auth-service/pom.xml auth-service/pom.xml

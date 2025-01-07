@@ -1,0 +1,15 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: github-config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_REPO}
+          username: ${GIT_USERNAME}
+          password: ${GIT_TOKEN}
+          default-label: main
+          basedir: /app/config

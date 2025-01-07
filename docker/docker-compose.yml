@@ -2,6 +2,24 @@
 #  - keycloak-compose.yml
 
 services:
+  config-server:
+    build:
+      context: ../
+      dockerfile: ./config-server/Dockerfile
+    container_name: config-server
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/application/default/main" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
   registry:
     build:
       context: ../
@@ -12,6 +30,9 @@ services:
       - .env
     ports:
       - "8761:8761"
+    depends_on:
+      config-server:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8761" ]
       interval: 30s

@@ -4,31 +4,11 @@ server:
 spring:
   application:
     name: test
+  config:
+    import: http://host.docker.internal:8888/
+  profiles:
+    active: service, oauth2
   mvc:
     hiddenmethod:
       filter:
         enabled: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://host.docker.internal:8080/realms/springboot-microservice-realm
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://host.docker.internal:8761/eureka
-  instance:
-    instance-id: "${spring.application.name}:${random.uuid}"
-    hostname: localhost
-    non-secure-port: 8083
-    prefer-ip-address: false
-
-logging:
-  level:
-    com:
-      netflix:
-        eureka: OFF
-        discovery: OFF
-  pattern:
-    console: "%C{1.} [%-5level] %d{HH:mm:ss} - %msg%n"
