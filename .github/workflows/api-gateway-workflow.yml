@@ -72,6 +72,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ../
-          file: ./Dockerfile
+          file: ./api-gateway/Dockerfile
           push: true
           tags: maksim25y/api-gateway:latest
