@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8888:8888"a
+      - "8888:8888"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/application/default/main" ]
       interval: 30s
