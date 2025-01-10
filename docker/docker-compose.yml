@@ -3,9 +3,7 @@
 
 services:
   config-server:
-    build:
-      context: ../
-      dockerfile: ./config-server/Dockerfile
+    image: maksim25y/config-server
     container_name: config-server
     restart: unless-stopped
     env_file:
@@ -21,10 +19,8 @@ services:
     networks:
       - backend
   registry:
-    build:
-      context: ../
-      dockerfile: ./eureka-server/Dockerfile
-    container_name: eureka_server
+    image: maksim25y/eureka-server
+    container_name: eureka-server
     restart: unless-stopped
     env_file:
       - .env
@@ -43,9 +39,7 @@ services:
       - backend
 
   auth-service:
-    build:
-      context: ../
-      dockerfile: ./auth-service/Dockerfile
+    image: maksim25y/auth-service
     container_name: auth-service
     restart: unless-stopped
     env_file:
@@ -59,9 +53,7 @@ services:
       - backend
 
   test-service:
-    build:
-      context: ../
-      dockerfile: ./test-service/Dockerfile
+    image: maksim25y/test-service
     container_name: test-service
     restart: unless-stopped
     env_file:
@@ -75,10 +67,8 @@ services:
       - backend
 
   api-gateway:
-    build:
-      context: ../
-      dockerfile: ./api-gateway/Dockerfile
-    container_name: api_gateway
+    image: maksim25y/api-gateway
+    container_name: api-gateway
     restart: unless-stopped
     env_file:
       - .env
