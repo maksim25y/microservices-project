@@ -49,7 +49,9 @@
         <module>auth-service</module>
         <module>config-server</module>
         <module>eureka-server</module>
+        <module>entity</module>
         <module>test-service</module>
+        <module>user-service</module>
     </modules>
 
     <dependencyManagement>

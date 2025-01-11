@@ -2,6 +2,8 @@ FROM maven:3.9.7-eclipse-temurin-21 AS dependencies
 WORKDIR /opt/app
 COPY pom.xml .
 COPY config-server/pom.xml config-server/pom.xml
+COPY entity/pom.xml entity/pom.xml
+COPY entity/src /opt/app/entity/src/
 COPY eureka-server/pom.xml eureka-server/pom.xml
 COPY api-gateway/pom.xml api-gateway/pom.xml
 COPY auth-service/pom.xml auth-service/pom.xml
@@ -13,6 +15,7 @@ WORKDIR /opt/app
 COPY --from=dependencies /root/.m2 /root/.m2
 COPY --from=dependencies /opt/app/ /opt/app
 COPY test-service/src /opt/app/test-service/src/
+RUN mvn -B -e -am -pl entity compile
 RUN mvn -B -e -am -pl test-service clean install -DskipTests
 
 FROM eclipse-temurin:21.0.2_13-jre-jammy AS final

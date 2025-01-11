@@ -1,0 +1,45 @@
+services:
+  postgresql:
+    image: postgres:16
+    container_name: $MAIN_POSTGRES_CONTAINER_NAME
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: $MAIN_POSTGRES_DB
+      POSTGRES_USER: $MAIN_POSTGRES_USER
+      POSTGRES_PASSWORD: $MAIN_POSTGRES_PASSWORD
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${MAIN_POSTGRES_USER} -d ${MAIN_POSTGRES_DB}" ]
+      interval: 3s
+      timeout: 5s
+
+  liquibase-migrations:
+    image: liquibase/liquibase:4.25
+    container_name: liquibase
+    restart: on-failure
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    command:
+      - --changelog-file=db.changelog-master.yml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://${MAIN_POSTGRES_CONTAINER_NAME}:5432/${MAIN_POSTGRES_DB}
+      - --username=${MAIN_POSTGRES_USER}
+      - --password=${MAIN_POSTGRES_PASSWORD}
+      - update
+    volumes:
+      - ../migrations/db/changelog:/liquibase/changelog/
+    networks:
+      - backend
+
+networks:
+  backend: {}
+
+volumes:
+  postgresql: { }
+
