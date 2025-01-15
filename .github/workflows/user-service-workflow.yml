@@ -89,6 +89,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./test-service/Dockerfile
+          file: ./user-service/Dockerfile
           push: true
           tags: maksim25y/user-service:latest
