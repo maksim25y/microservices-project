@@ -8,8 +8,8 @@ spring:
     config:
       server:
         git:
-          uri: ${CONFIG_REPO}
-          username: ${GIT_USERNAME}
-          password: ${GIT_TOKEN}
+          uri: ${CONFIG_REPO:https://github.com/maksim25y/properties-test.git}
+          username: ${GIT_USERNAME:maksim25y}
+          password: ${GIT_TOKEN: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}
           default-label: main
           basedir: /app/config

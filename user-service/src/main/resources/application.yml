@@ -1,0 +1,23 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: user-service
+  config:
+    import: http://host.docker.internal:8888/
+  profiles:
+    active: service, oauth2, db
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+  client:
+    serviceUrl:
+      defaultZone: http://host.docker.internal:8761/eureka/

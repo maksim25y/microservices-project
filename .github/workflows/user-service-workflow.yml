@@ -1,0 +1,94 @@
+name: User service module workflow
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'user-service/**'
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run build
+        run: mvn package -pl user-service -am -Dskip.unit.tests=true
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run unit tests
+        run: mvn -pl user-service -am test
+
+  checkstyle:
+    runs-on: ubuntu-latest
+    name: Checkstyle
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run checkstyle
+        run: mvn -pl user-service -am checkstyle:check
+
+  package:
+    needs:
+      - build
+      - checkstyle
+      - unit-tests
+    runs-on: ubuntu-latest
+    name: Package
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./user-service/Dockerfile
+          push: true
+          tags: maksim25y/user-service:latest
