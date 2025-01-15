@@ -66,20 +66,6 @@ services:
     networks:
       - backend
 
-  user-service:
-    image: maksim25y/user-service
-    container_name: user-service
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "8084:8084"
-    depends_on:
-      registry:
-        condition: service_healthy
-    networks:
-      - backend
-
   api-gateway:
     image: maksim25y/api-gateway
     container_name: api-gateway
@@ -92,8 +78,6 @@ services:
       registry:
         condition: service_healthy
       auth-service:
-        condition: service_started
-      test-service:
         condition: service_started
     networks:
       - backend

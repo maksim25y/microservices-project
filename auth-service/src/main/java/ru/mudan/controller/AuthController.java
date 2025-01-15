@@ -1,12 +1,13 @@
 package ru.mudan.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.mudan.dto.AuthRequest;
-import ru.mudan.dto.TokenResponse;
+import ru.mudan.dto.RegisterRequest;
 import ru.mudan.service.AuthService;
 
 @RestController
@@ -20,8 +21,14 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/login")
-    public TokenResponse login(@RequestBody AuthRequest authRequest) {
-        return authService.login(authRequest);
+//    @PostMapping("/login")
+//    public TokenResponse login(@RequestBody AuthRequest authRequest) {
+//        return authService.login(authRequest);
+//    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Void> register(@RequestBody RegisterRequest registerRequest) {
+        authService.registerUserKeycloak(registerRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

@@ -64,22 +64,6 @@ services:
     networks:
       - backend
 
-  test-service:
-    build:
-      context: ../
-      dockerfile: ./test-service/Dockerfile
-    container_name: test-service
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "8083:8083"
-    depends_on:
-      registry:
-        condition: service_healthy
-    networks:
-      - backend
-
   user-service:
     build:
       context: ../
@@ -111,7 +95,7 @@ services:
         condition: service_healthy
       auth-service:
         condition: service_started
-      test-service:
+      user-service:
         condition: service_started
     networks:
       - backend

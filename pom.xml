@@ -42,6 +42,8 @@
         <!-- Linters -->
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <checkstyle.version>10.12.7</checkstyle.version>
+<!--        Keycloak-->
+        <keycloak.version>26.0.3</keycloak.version>
     </properties>
 
     <modules>
@@ -50,7 +52,6 @@
         <module>config-server</module>
         <module>eureka-server</module>
         <module>entity</module>
-        <module>test-service</module>
         <module>user-service</module>
     </modules>
 

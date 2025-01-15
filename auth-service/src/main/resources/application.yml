@@ -7,4 +7,4 @@ spring:
   config:
     import: http://host.docker.internal:8888/
   profiles:
-    active: security, service
+    active: service, admin-realm
