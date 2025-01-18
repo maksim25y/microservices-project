@@ -5,9 +5,13 @@ spring:
   application:
     name: user-service
   config:
-    import: ${CONFIG_SERVER_URL:localhost:8888}
+    import: ${CONFIG_SERVER_URL:http://localhost:8888/}
   profiles:
     active: service, oauth2, db
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
   jackson:
     deserialization:
       fail-on-unknown-properties: true
@@ -16,20 +20,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-  mvc:
-    hiddenmethod:
-      filter:
-        enabled: true
 
 user:
   event:
     topic:
       name: user-events
-
-eureka:
-  instance:
-    hostname: localhost
-    prefer-ip-address: false
-  client:
-    serviceUrl:
-      defaultZone: http://host.docker.internal:8761/eureka/
