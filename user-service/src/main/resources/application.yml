@@ -5,14 +5,26 @@ spring:
   application:
     name: user-service
   config:
-    import: http://host.docker.internal:8888/
+    import: ${CONFIG_SERVER_URL:localhost:8888}
   profiles:
     active: service, oauth2, db
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER:localhost:9094}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   mvc:
     hiddenmethod:
       filter:
         enabled: true
 
+user:
+  event:
+    topic:
+      name: user-events
 
 eureka:
   instance:

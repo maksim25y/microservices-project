@@ -10,6 +10,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
     ports:
       - "8888:8888"
     healthcheck:
@@ -23,7 +25,6 @@ services:
         condition: service_completed_successfully
       postgresql:
         condition: service_healthy
-
     networks:
       - backend
   registry:
