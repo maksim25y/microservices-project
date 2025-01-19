@@ -2,9 +2,15 @@
 CREATE TABLE IF NOT EXISTS app_users
 (
     id          BIGSERIAL PRIMARY KEY,
-    firstname text,
-    lastname text,
-    email text
+    firstname text NOT NULL,
+    lastname text NOT NULL,
+    email text UNIQUE
+);
+-- changeset maksim25y:1
+CREATE TABLE IF NOT EXISTS registration
+(
+    id          BIGSERIAL PRIMARY KEY,
+    status text NOT NULL
 );
 -- changeset maksim25y:2
 CREATE TABLE IF NOT EXISTS  posts

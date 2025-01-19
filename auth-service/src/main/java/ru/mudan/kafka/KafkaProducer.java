@@ -1,9 +1,9 @@
-package ru.mudan;
+package ru.mudan.kafka;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import ru.mudan.dto.user.event.UserCreatedEvent;
+import ru.mudan.dto.user.event.UserCreatingEvent;
 
 @Service
 @RequiredArgsConstructor
@@ -11,7 +11,7 @@ public class KafkaProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void sendMessage(UserCreatedEvent event) {
-        kafkaTemplate.send("message-topic", event);
+    public void sendUserCreatingEvent(UserCreatingEvent event) {
+        kafkaTemplate.send("user-creating", event);
     }
 }

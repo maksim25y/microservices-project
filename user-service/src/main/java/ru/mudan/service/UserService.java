@@ -1,16 +1,15 @@
 package ru.mudan.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import ru.mudan.KafkaProducer;
 import ru.mudan.dto.user.RegisterRequest;
 import ru.mudan.dto.user.UserResponse;
 import ru.mudan.dto.user.UserUpdateRequest;
 import ru.mudan.dto.user.event.UserCreatedEvent;
+import ru.mudan.dto.user.event.UserNotCreatedEvent;
 import ru.mudan.entity.AppUser;
+import ru.mudan.kafka.KafkaProducer;
 import ru.mudan.repositories.UserRepository;
 
 @Service
@@ -31,28 +30,32 @@ public class UserService {
                 .build();
     }
 
-    public UserResponse save(RegisterRequest request) {
+    public void save(RegisterRequest request, Long registrationId) {
         var user = new AppUser();
         user.setFirstname(request.firstname());
         user.setLastname(request.lastname());
         user.setEmail(request.email());
-        var savedUser = userRepository.save(user);
+
+        try {
+            var savedUser = userRepository.save(user);
+        } catch (Exception e) {
+            var userNotCreatedEvent = new UserNotCreatedEvent(
+                    user.getFirstname(),
+                    user.getLastname(),
+                    user.getEmail(),
+                    registrationId
+            );
+            kafkaProducer.sendUserNotCreatedEvent(userNotCreatedEvent);
+        }
 
         var userCreatedEvent = new UserCreatedEvent(
-                user.getEmail(),
                 user.getFirstname(),
                 user.getLastname(),
-                user.getEmail()
+                user.getEmail(),
+                registrationId
         );
 
-        kafkaProducer.sendMessage(userCreatedEvent);
-
-        return UserResponse.builder()
-                .id(savedUser.getId())
-                .firstname(savedUser.getFirstname())
-                .lastname(savedUser.getLastname())
-                .email(savedUser.getEmail())
-                .build();
+        kafkaProducer.sendUserCreatedEvent(userCreatedEvent);
     }
 
     public UserResponse update(Authentication authentication, UserUpdateRequest request) {

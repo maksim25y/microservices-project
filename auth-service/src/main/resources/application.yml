@@ -7,9 +7,9 @@ spring:
   config:
     import: ${CONFIG_SERVER_URL:http://localhost:8888/}
   profiles:
-    active: service, admin-realm, security
+    active: service, security, db
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER:host.docker.internal:9094}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER:localhost:9094}
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
@@ -18,3 +18,14 @@ spring:
           json:
             trusted:
               packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+app:
+  keycloak:
+    admin:
+      clientId: admin-cli
+      clientSecret: WmgtELUlBu49LGYg3Qfbup2EuZpSIU3L
+    realm: eselpo
+    serverUrl: ${KEYCLOAK_URL:http://localhost:8080/}

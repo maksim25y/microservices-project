@@ -1,6 +1,9 @@
 package ru.mudan.dto.user.event;
 
-public record UserCreatedEvent(
+import lombok.Builder;
+
+@Builder
+public record UserNotCreatedEvent(
         String firstname,
         String lastname,
         String email,

@@ -23,6 +23,12 @@ import org.springframework.web.client.RestTemplate;
 import ru.mudan.dto.AuthRequest;
 import ru.mudan.dto.RegisterRequest;
 import ru.mudan.dto.TokenResponse;
+import ru.mudan.dto.user.RegistrationResponse;
+import ru.mudan.dto.user.enums.RegistrationStatus;
+import ru.mudan.dto.user.event.UserCreatingEvent;
+import ru.mudan.entity.Registration;
+import ru.mudan.kafka.KafkaProducer;
+import ru.mudan.repositories.RegistrationRepository;
 
 @SuppressWarnings("MagicNumber")
 @Slf4j
@@ -30,6 +36,7 @@ import ru.mudan.dto.TokenResponse;
 @RequiredArgsConstructor
 public class AuthService {
     private final Keycloak keycloak;
+    private final RegistrationRepository registrationRepository;
     @Value("${app.keycloak.realm}")
     private String realm;
     @Value("${client.security.client_id}")
@@ -40,6 +47,7 @@ public class AuthService {
     private String grantType;
     @Value("${client.security.token_url}")
     private String tokenUrl;
+    private final KafkaProducer kafkaProducer;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper;
 
@@ -74,7 +82,11 @@ public class AuthService {
         return restTemplate.postForEntity(tokenUrl, request, String.class);
     }
 
-    public void registerUserKeycloak(RegisterRequest request) {
+    public RegistrationResponse registerUser(RegisterRequest request) {
+        if (userAlreadyExists(request.email())) {
+            //TODO-добавить исключение специальное и обработку в хэндлере
+//            throw new UserAlreadyExists(request.email());
+        }
         var userRepresentation = createUserRepresentation(request);
 
         var usersResource = getUsersResource();
@@ -84,12 +96,48 @@ public class AuthService {
         if (!Objects.equals(201, response.getStatus())) {
             var responseBody = response.readEntity(String.class);
             log.error("Error in creating user, response body: {}", responseBody);
+            throw new RuntimeException("Error in creating user, response body: " + responseBody);
         }
 
-        //TODO - многопоточность добавить
-        var user = usersResource.searchByUsername(request.email(), true);
-        var a = user.getFirst();
-        sendVerificationEmail(a.getId());
+        var registrationForCreating = new Registration();
+        registrationForCreating.setStatus(RegistrationStatus.PENDING);
+        var createdRegistration = registrationRepository.save(registrationForCreating);
+
+        var userCreatingEvent = UserCreatingEvent.builder()
+                .email(request.email())
+                .firstname(request.firstname())
+                .lastname(request.lastname())
+                .registrationId(createdRegistration.getId())
+                .build();
+
+        kafkaProducer.sendUserCreatingEvent(userCreatingEvent);
+
+        return RegistrationResponse.builder()
+                .status(RegistrationStatus.PENDING)
+                .registrationId(createdRegistration.getId())
+                .build();
+//        //TODO - многопоточность добавить
+//        var user = usersResource.searchByUsername(request.email(), true);
+//        var a = user.getFirst();
+//        sendVerificationEmail(a.getId());
+    }
+
+    private boolean userAlreadyExists(String email) {
+        var usersResource = getUsersResource();
+
+        var user = usersResource.searchByUsername(email, true);
+
+        return !user.isEmpty();
+    }
+
+    public RegistrationResponse getRegistrationResponseById(Long registrationId) {
+        var registration = registrationRepository.findById(registrationId)
+                .orElseThrow();
+        //TODO-добавить исключение специальное и обработку в хэндлере
+        return RegistrationResponse.builder()
+                .registrationId(registrationId)
+                .status(registration.getStatus())
+                .build();
     }
 
     public void sendVerificationEmail(String userId) {
