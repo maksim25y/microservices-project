@@ -21,9 +21,9 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/{id}")
-    public UserResponse getUserById(@PathVariable Long id) {
-        return userService.getById(id);
+    @GetMapping("/{email}")
+    public UserResponse getUserById(@PathVariable String email) {
+        return userService.getByEmail(email);
     }
 
     @PatchMapping("/update")

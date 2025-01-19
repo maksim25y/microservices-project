@@ -9,6 +9,7 @@ import ru.mudan.dto.user.UserUpdateRequest;
 import ru.mudan.dto.user.event.UserCreatedEvent;
 import ru.mudan.dto.user.event.UserNotCreatedEvent;
 import ru.mudan.entity.AppUser;
+import ru.mudan.exceptions.entity.not_found.UserNotFoundException;
 import ru.mudan.kafka.KafkaProducer;
 import ru.mudan.repositories.UserRepository;
 
@@ -19,9 +20,9 @@ public class UserService {
     private final KafkaProducer kafkaProducer;
     private final UserRepository userRepository;
 
-    public UserResponse getById(Long id) {
-        var user = userRepository.findById(id)
-                .orElseThrow(); //TODO - добавить исключение
+    public UserResponse getByEmail(String email) {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
         return UserResponse.builder()
                 .id(user.getId())
                 .firstname(user.getFirstname())

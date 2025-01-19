@@ -53,6 +53,7 @@
         <module>eureka-server</module>
         <module>entity</module>
         <module>user-service</module>
+        <module>util</module>
     </modules>
 
     <dependencyManagement>
