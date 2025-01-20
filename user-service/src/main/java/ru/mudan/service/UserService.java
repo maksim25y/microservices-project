@@ -3,7 +3,7 @@ package ru.mudan.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import ru.mudan.dto.user.RegisterRequest;
+import ru.mudan.dto.user.auth.RegisterRequest;
 import ru.mudan.dto.user.UserResponse;
 import ru.mudan.dto.user.UserUpdateRequest;
 import ru.mudan.dto.user.event.UserCreatedEvent;
@@ -61,10 +61,11 @@ public class UserService {
 
     public UserResponse update(Authentication authentication, UserUpdateRequest request) {
         var user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(); //TODO - добавить исключение
+                .orElseThrow(() -> new UserNotFoundException(authentication.getName()));
         user.setFirstname(request.firstname());
         user.setLastname(request.lastname());
         var updatedUser = userRepository.save(user);
+        //TODO - отправить запрос на редактирование в keycloak
         return UserResponse.builder()
                 .id(updatedUser.getId())
                 .firstname(updatedUser.getFirstname())
@@ -75,7 +76,9 @@ public class UserService {
 
     public void delete(Authentication authentication) {
         var user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(); //TODO - добавить исключение
+                .orElseThrow(() -> new UserNotFoundException(authentication.getName()));
         userRepository.delete(user);
+        //TODO-отправить запрос в keycloak на удаление
+        kafkaProducer.sendUserDeleting(user.getEmail());
     }
 }

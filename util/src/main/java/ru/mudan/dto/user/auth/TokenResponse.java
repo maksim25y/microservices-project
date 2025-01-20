@@ -1,4 +1,4 @@
-package ru.mudan.dto;
+package ru.mudan.dto.user.auth;
 
 import lombok.Builder;
 

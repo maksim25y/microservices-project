@@ -18,4 +18,8 @@ public class KafkaProducer {
     public void sendUserNotCreatedEvent(UserNotCreatedEvent event) {
         kafkaTemplate.send("user-not-created", event);
     }
+
+    public void sendUserDeleting(String email) {
+        kafkaTemplate.send("user-deleting", email);
+    }
 }

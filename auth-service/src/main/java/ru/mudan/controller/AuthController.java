@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.mudan.dto.AuthRequest;
-import ru.mudan.dto.RegisterRequest;
-import ru.mudan.dto.TokenResponse;
-import ru.mudan.dto.user.RegistrationResponse;
+import ru.mudan.dto.user.auth.RegisterRequest;
+import ru.mudan.dto.user.auth.RegistrationResponse;
+import ru.mudan.dto.user.auth.AuthRequest;
+import ru.mudan.dto.user.auth.TokenResponse;
 import ru.mudan.service.AuthService;
 import static ru.mudan.dto.user.enums.RegisterUtil.statuses;
 

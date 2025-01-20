@@ -12,21 +12,22 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import ru.mudan.dto.AuthRequest;
-import ru.mudan.dto.RegisterRequest;
-import ru.mudan.dto.TokenResponse;
-import ru.mudan.dto.user.RegistrationResponse;
+import ru.mudan.dto.user.auth.RegisterRequest;
+import ru.mudan.dto.user.auth.RegistrationResponse;
+import ru.mudan.dto.user.auth.AuthRequest;
+import ru.mudan.dto.user.auth.TokenResponse;
 import ru.mudan.dto.user.enums.RegistrationStatus;
 import ru.mudan.dto.user.event.UserCreatingEvent;
 import ru.mudan.entity.Registration;
+import ru.mudan.exceptions.base.AuthorizationException;
+import ru.mudan.exceptions.entity.already_exists.UserAlreadyExistsException;
+import ru.mudan.exceptions.entity.not_found.RegistrationNotFoundException;
+import ru.mudan.exceptions.entity.not_found.UserNotFoundException;
 import ru.mudan.kafka.KafkaProducer;
 import ru.mudan.repositories.RegistrationRepository;
 
@@ -79,14 +80,18 @@ public class AuthService {
 
         var request = new HttpEntity<>(map, headers);
 
-        return restTemplate.postForEntity(tokenUrl, request, String.class);
+        try {
+            return restTemplate.exchange(tokenUrl, HttpMethod.POST, request, String.class);
+        } catch (RuntimeException e) {
+            throw new AuthorizationException(authRequest.username());
+        }
     }
 
     public RegistrationResponse registerUser(RegisterRequest request) {
         if (userAlreadyExists(request.email())) {
-            //TODO-добавить исключение специальное и обработку в хэндлере
-//            throw new UserAlreadyExists(request.email());
+            throw new UserAlreadyExistsException(request.email());
         }
+
         var userRepresentation = createUserRepresentation(request);
 
         var usersResource = getUsersResource();
@@ -122,6 +127,18 @@ public class AuthService {
 //        sendVerificationEmail(a.getId());
     }
 
+    public void delete(String email) {
+        var userResource = getUsersResource();
+        var foundUser = userResource.searchByEmail(email,true);
+
+        if (foundUser.isEmpty()) {
+            throw new UserNotFoundException(email);
+        }
+
+        var userId = foundUser.getFirst().getId();
+        userResource.delete(userId);
+    }
+
     private boolean userAlreadyExists(String email) {
         var usersResource = getUsersResource();
 
@@ -132,8 +149,7 @@ public class AuthService {
 
     public RegistrationResponse getRegistrationResponseById(Long registrationId) {
         var registration = registrationRepository.findById(registrationId)
-                .orElseThrow();
-        //TODO-добавить исключение специальное и обработку в хэндлере
+                .orElseThrow(() -> new RegistrationNotFoundException(registrationId));
         return RegistrationResponse.builder()
                 .registrationId(registrationId)
                 .status(registration.getStatus())

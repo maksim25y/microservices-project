@@ -1,13 +1,12 @@
-package ru.mudan.dto;
+package ru.mudan.dto.user.auth;
 
 import lombok.Builder;
 
 @Builder
 public record RegisterRequest(
-        String username,
-        String email,
         String firstname,
         String lastname,
+        String email,
         String password
 ) {
 }

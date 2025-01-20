@@ -26,14 +26,14 @@ public class UserController {
         return userService.getByEmail(email);
     }
 
-    @PatchMapping("/update")
+    @PatchMapping
     public UserResponse updateUser(@RequestBody UserUpdateRequest request, Authentication authentication) {
         return userService.update(authentication, request);
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseEntity<Void> deleteUser(Authentication authentication) {
         userService.delete(authentication);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }
