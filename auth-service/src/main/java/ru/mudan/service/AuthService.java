@@ -12,14 +12,18 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import ru.mudan.dto.user.auth.AuthRequest;
 import ru.mudan.dto.user.auth.RegisterRequest;
 import ru.mudan.dto.user.auth.RegistrationResponse;
-import ru.mudan.dto.user.auth.AuthRequest;
 import ru.mudan.dto.user.auth.TokenResponse;
 import ru.mudan.dto.user.enums.RegistrationStatus;
 import ru.mudan.dto.user.event.UserCreatingEvent;
@@ -28,6 +32,7 @@ import ru.mudan.exceptions.base.AuthorizationException;
 import ru.mudan.exceptions.entity.already_exists.UserAlreadyExistsException;
 import ru.mudan.exceptions.entity.not_found.RegistrationNotFoundException;
 import ru.mudan.exceptions.entity.not_found.UserNotFoundException;
+import ru.mudan.exceptions.keycloak.KeycloakRegistrationException;
 import ru.mudan.kafka.KafkaProducer;
 import ru.mudan.repositories.RegistrationRepository;
 
@@ -74,7 +79,7 @@ public class AuthService {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("client_id", clientId);
         map.add("client_secret", clientSecret);
-        map.add("username", authRequest.username());
+        map.add("username", authRequest.email());
         map.add("password", authRequest.password());
         map.add("grant_type", grantType);
 
@@ -83,7 +88,7 @@ public class AuthService {
         try {
             return restTemplate.exchange(tokenUrl, HttpMethod.POST, request, String.class);
         } catch (RuntimeException e) {
-            throw new AuthorizationException(authRequest.username());
+            throw new AuthorizationException(authRequest.email());
         }
     }
 
@@ -99,9 +104,7 @@ public class AuthService {
         var response = usersResource.create(userRepresentation);
 
         if (!Objects.equals(201, response.getStatus())) {
-            var responseBody = response.readEntity(String.class);
-            log.error("Error in creating user, response body: {}", responseBody);
-            throw new RuntimeException("Error in creating user, response body: " + responseBody);
+            throw new KeycloakRegistrationException(request.email());
         }
 
         var registrationForCreating = new Registration();
@@ -129,7 +132,7 @@ public class AuthService {
 
     public void delete(String email) {
         var userResource = getUsersResource();
-        var foundUser = userResource.searchByEmail(email,true);
+        var foundUser = userResource.searchByEmail(email, true);
 
         if (foundUser.isEmpty()) {
             throw new UserNotFoundException(email);

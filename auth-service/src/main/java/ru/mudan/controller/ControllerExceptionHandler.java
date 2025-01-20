@@ -1,5 +1,7 @@
 package ru.mudan.controller;
 
+import java.util.Locale;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -11,9 +13,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.mudan.exceptions.base.ApplicationRuntimeException;
 import ru.mudan.exceptions.base.AuthorizationException;
-
-import java.util.Locale;
-import java.util.Objects;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
