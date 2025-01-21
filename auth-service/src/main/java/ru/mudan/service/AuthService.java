@@ -50,7 +50,7 @@ public class AuthService {
     @Value("${client.security.token_url}")
     private String tokenUrl;
     private final KafkaProducer kafkaProducer;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     @SneakyThrows
