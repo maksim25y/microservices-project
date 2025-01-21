@@ -6,6 +6,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import ru.mudan.dto.user.event.UserCreatedEvent;
 import ru.mudan.dto.user.event.UserNotCreatedEvent;
+import ru.mudan.dto.user.event.UserUpdatingEvent;
 import ru.mudan.service.AuthService;
 
 @Slf4j
@@ -30,5 +31,10 @@ public class KafkaConsumer {
     @KafkaListener(topics = "user-deleting", groupId = "user-deleting_consumer")
     public void listenUserDeleting(String email) {
         authService.delete(email);
+    }
+
+    @KafkaListener(topics = "user-updating", groupId = "user-updating_consumer")
+    public void listenUserUpdating(UserUpdatingEvent event) {
+        authService.update(event);
     }
 }

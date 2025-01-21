@@ -1,5 +1,6 @@
 package ru.mudan.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
@@ -22,16 +23,19 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import ru.mudan.dto.user.auth.AuthRequest;
+import ru.mudan.dto.user.auth.RefreshTokenRequest;
 import ru.mudan.dto.user.auth.RegisterRequest;
 import ru.mudan.dto.user.auth.TokenResponse;
 import ru.mudan.dto.user.event.UserCreatingEvent;
+import ru.mudan.dto.user.event.UserUpdatingEvent;
 import ru.mudan.exceptions.base.AuthorizationException;
 import ru.mudan.exceptions.entity.already_exists.UserAlreadyExistsException;
 import ru.mudan.exceptions.entity.not_found.UserNotFoundException;
+import ru.mudan.exceptions.keycloak.KeycloakRefreshTokenException;
 import ru.mudan.exceptions.keycloak.KeycloakRegistrationException;
 import ru.mudan.kafka.KafkaProducer;
 
-@SuppressWarnings("MagicNumber")
+@SuppressWarnings({"MagicNumber", "MultipleStringLiterals"})
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,8 +47,6 @@ public class AuthService {
     private String clientId;
     @Value("${client.security.client_secret}")
     private String clientSecret;
-    @Value("${client.security.grant_type}")
-    private String grantType;
     @Value("${client.security.token_url}")
     private String tokenUrl;
     private final KafkaProducer kafkaProducer;
@@ -55,15 +57,38 @@ public class AuthService {
     public TokenResponse login(AuthRequest authRequest) {
         var response = sendLoginToKeycloak(authRequest);
 
-        var responseMap = objectMapper.readValue(response.getBody(), Map.class);
+        return getTokenFromResponse(response);
+    }
 
-        var accessToken = (String) responseMap.get("access_token");
-        var refreshToken = (String) responseMap.get("refresh_token");
+    @SneakyThrows
+    public TokenResponse refreshToken(RefreshTokenRequest request) {
+        var response = sendRefreshTokenToKeycloak(request.refreshToken());
 
-        return TokenResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+        return getTokenFromResponse(response);
+    }
+
+    public ResponseEntity<String> sendRefreshTokenToKeycloak(String refreshToken) {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+
+        setHeadersForAdmin(map,  "refresh_token");
+        map.add("refresh_token", refreshToken);
+
+        var request = new HttpEntity<>(map, headers);
+
+        try {
+            return restTemplate.exchange(tokenUrl, HttpMethod.POST, request, String.class);
+        } catch (RuntimeException e) {
+            throw new KeycloakRefreshTokenException();
+        }
+    }
+
+    private void setHeadersForAdmin(MultiValueMap<String, String> map, String grantType) {
+        map.add("client_id", clientId);
+        map.add("client_secret", clientSecret);
+        map.add("grant_type", grantType);
     }
 
     private ResponseEntity<String> sendLoginToKeycloak(AuthRequest authRequest) {
@@ -71,11 +96,10 @@ public class AuthService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("client_id", clientId);
-        map.add("client_secret", clientSecret);
+
+        setHeadersForAdmin(map,  "password");
         map.add("username", authRequest.email());
         map.add("password", authRequest.password());
-        map.add("grant_type", grantType);
 
         var request = new HttpEntity<>(map, headers);
 
@@ -84,6 +108,16 @@ public class AuthService {
         } catch (RuntimeException e) {
             throw new AuthorizationException(authRequest.email());
         }
+    }
+
+    public void update(UserUpdatingEvent event) {
+        var user = getUserByEmail(event.email());
+        var usersResource = getUsersResource();
+
+        user.setFirstName(event.firstname());
+        user.setLastName(event.lastname());
+
+        usersResource.get(user.getId()).update(user);
     }
 
     public void registerUser(RegisterRequest request) {
@@ -108,14 +142,15 @@ public class AuthService {
                 .build();
 
         kafkaProducer.sendUserCreatingEvent(userCreatingEvent);
-
-//        //TODO - многопоточность добавить
-//        var user = usersResource.searchByUsername(request.email(), true);
-//        var a = user.getFirst();
-//        sendVerificationEmail(a.getId());
     }
 
     public void delete(String email) {
+        var user = getUserByEmail(email);
+        var usersResource = getUsersResource();
+        usersResource.delete(user.getId());
+    }
+
+    private UserRepresentation getUserByEmail(String email) {
         var userResource = getUsersResource();
         var foundUser = userResource.searchByEmail(email, true);
 
@@ -123,8 +158,7 @@ public class AuthService {
             throw new UserNotFoundException(email);
         }
 
-        var userId = foundUser.getFirst().getId();
-        userResource.delete(userId);
+        return foundUser.getFirst();
     }
 
     private boolean userAlreadyExists(String email) {
@@ -133,11 +167,6 @@ public class AuthService {
         var user = usersResource.searchByUsername(email, true);
 
         return !user.isEmpty();
-    }
-
-    public void sendVerificationEmail(String userId) {
-        var usersResource = getUsersResource();
-        usersResource.get(userId).sendVerifyEmail();
     }
 
     private UserRepresentation createUserRepresentation(RegisterRequest request) {
@@ -155,6 +184,18 @@ public class AuthService {
 
         userRepresentation.setCredentials(List.of(credentialRepresentation));
         return userRepresentation;
+    }
+
+    private TokenResponse getTokenFromResponse(ResponseEntity<String> response) throws JsonProcessingException {
+        var responseMap = objectMapper.readValue(response.getBody(), Map.class);
+
+        var accessToken = (String) responseMap.get("access_token");
+        var refreshToken = (String) responseMap.get("refresh_token");
+
+        return TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     private UsersResource getUsersResource() {

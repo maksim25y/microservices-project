@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mudan.dto.user.auth.AuthRequest;
+import ru.mudan.dto.user.auth.RefreshTokenRequest;
 import ru.mudan.dto.user.auth.RegisterRequest;
 import ru.mudan.dto.user.auth.TokenResponse;
 import ru.mudan.service.AuthService;
@@ -57,10 +57,21 @@ public class AuthController {
             @ApiResponse(responseCode = "409", description = "Пользователь уже существует",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    @SecurityRequirement(name = "JWT")
     @PostMapping("/register")
     public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest registerRequest) {
         authService.registerUser(registerRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Operation(summary = "Обновление JWT токена",
+            description = "Обновляет токен и возвращает access и refresh токен")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Успешное обновление"),
+            @ApiResponse(responseCode = "400", description = "Неверный ввод",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @PostMapping("/refresh_token")
+    public TokenResponse refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        return authService.refreshToken(request);
     }
 }

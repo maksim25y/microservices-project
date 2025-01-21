@@ -8,6 +8,7 @@ import ru.mudan.dto.user.UserUpdateRequest;
 import ru.mudan.dto.user.auth.RegisterRequest;
 import ru.mudan.dto.user.event.UserCreatedEvent;
 import ru.mudan.dto.user.event.UserNotCreatedEvent;
+import ru.mudan.dto.user.event.UserUpdatingEvent;
 import ru.mudan.entity.AppUser;
 import ru.mudan.exceptions.entity.not_found.UserNotFoundException;
 import ru.mudan.kafka.KafkaProducer;
@@ -63,7 +64,15 @@ public class UserService {
         user.setFirstname(request.firstname());
         user.setLastname(request.lastname());
         var updatedUser = userRepository.save(user);
-        //TODO - отправить запрос на редактирование в keycloak
+
+        var userUpdatingEvent = UserUpdatingEvent.builder()
+                .firstname(request.firstname())
+                .lastname(request.lastname())
+                .email(user.getEmail())
+                .build();
+
+        kafkaProducer.sendUserUpdating(userUpdatingEvent);
+
         return UserResponse.builder()
                 .id(updatedUser.getId())
                 .firstname(updatedUser.getFirstname())
@@ -76,7 +85,6 @@ public class UserService {
         var user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new UserNotFoundException(authentication.getName()));
         userRepository.delete(user);
-        //TODO-отправить запрос в keycloak на удаление
         kafkaProducer.sendUserDeleting(user.getEmail());
     }
 }
