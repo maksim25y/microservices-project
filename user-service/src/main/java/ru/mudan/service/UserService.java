@@ -31,7 +31,7 @@ public class UserService {
                 .build();
     }
 
-    public void save(RegisterRequest request, Long registrationId) {
+    public void save(RegisterRequest request) {
         var user = new AppUser();
         user.setFirstname(request.firstname());
         user.setLastname(request.lastname());
@@ -43,8 +43,7 @@ public class UserService {
             var userNotCreatedEvent = new UserNotCreatedEvent(
                     user.getFirstname(),
                     user.getLastname(),
-                    user.getEmail(),
-                    registrationId
+                    user.getEmail()
             );
             kafkaProducer.sendUserNotCreatedEvent(userNotCreatedEvent);
         }
@@ -52,8 +51,7 @@ public class UserService {
         var userCreatedEvent = new UserCreatedEvent(
                 user.getFirstname(),
                 user.getLastname(),
-                user.getEmail(),
-                registrationId
+                user.getEmail()
         );
 
         kafkaProducer.sendUserCreatedEvent(userCreatedEvent);

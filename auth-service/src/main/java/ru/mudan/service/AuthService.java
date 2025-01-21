@@ -23,18 +23,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import ru.mudan.dto.user.auth.AuthRequest;
 import ru.mudan.dto.user.auth.RegisterRequest;
-import ru.mudan.dto.user.auth.RegistrationResponse;
 import ru.mudan.dto.user.auth.TokenResponse;
-import ru.mudan.dto.user.enums.RegistrationStatus;
 import ru.mudan.dto.user.event.UserCreatingEvent;
-import ru.mudan.entity.Registration;
 import ru.mudan.exceptions.base.AuthorizationException;
 import ru.mudan.exceptions.entity.already_exists.UserAlreadyExistsException;
-import ru.mudan.exceptions.entity.not_found.RegistrationNotFoundException;
 import ru.mudan.exceptions.entity.not_found.UserNotFoundException;
 import ru.mudan.exceptions.keycloak.KeycloakRegistrationException;
 import ru.mudan.kafka.KafkaProducer;
-import ru.mudan.repositories.RegistrationRepository;
 
 @SuppressWarnings("MagicNumber")
 @Slf4j
@@ -42,7 +37,6 @@ import ru.mudan.repositories.RegistrationRepository;
 @RequiredArgsConstructor
 public class AuthService {
     private final Keycloak keycloak;
-    private final RegistrationRepository registrationRepository;
     @Value("${app.keycloak.realm}")
     private String realm;
     @Value("${client.security.client_id}")
@@ -92,7 +86,7 @@ public class AuthService {
         }
     }
 
-    public RegistrationResponse registerUser(RegisterRequest request) {
+    public void registerUser(RegisterRequest request) {
         if (userAlreadyExists(request.email())) {
             throw new UserAlreadyExistsException(request.email());
         }
@@ -107,23 +101,14 @@ public class AuthService {
             throw new KeycloakRegistrationException(request.email());
         }
 
-        var registrationForCreating = new Registration();
-        registrationForCreating.setStatus(RegistrationStatus.PENDING);
-        var createdRegistration = registrationRepository.save(registrationForCreating);
-
         var userCreatingEvent = UserCreatingEvent.builder()
                 .email(request.email())
                 .firstname(request.firstname())
                 .lastname(request.lastname())
-                .registrationId(createdRegistration.getId())
                 .build();
 
         kafkaProducer.sendUserCreatingEvent(userCreatingEvent);
 
-        return RegistrationResponse.builder()
-                .status(RegistrationStatus.PENDING)
-                .registrationId(createdRegistration.getId())
-                .build();
 //        //TODO - многопоточность добавить
 //        var user = usersResource.searchByUsername(request.email(), true);
 //        var a = user.getFirst();
@@ -148,15 +133,6 @@ public class AuthService {
         var user = usersResource.searchByUsername(email, true);
 
         return !user.isEmpty();
-    }
-
-    public RegistrationResponse getRegistrationResponseById(Long registrationId) {
-        var registration = registrationRepository.findById(registrationId)
-                .orElseThrow(() -> new RegistrationNotFoundException(registrationId));
-        return RegistrationResponse.builder()
-                .registrationId(registrationId)
-                .status(registration.getStatus())
-                .build();
     }
 
     public void sendVerificationEmail(String userId) {

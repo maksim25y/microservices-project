@@ -6,7 +6,6 @@ import lombok.Builder;
 public record UserCreatingEvent(
         String firstname,
         String lastname,
-        String email,
-        Long registrationId
+        String email
 ) {
 }

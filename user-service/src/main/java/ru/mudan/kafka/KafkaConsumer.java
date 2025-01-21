@@ -21,6 +21,6 @@ public class KafkaConsumer {
                         .email(event.email())
                         .firstname(event.firstname())
                         .lastname(event.lastname())
-                .build(), event.registrationId());
+                .build());
     }
 }

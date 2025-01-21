@@ -29,7 +29,12 @@ public class UserServiceApplication {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .authorizeHttpRequests(c -> c.anyRequest().authenticated())
+                .authorizeHttpRequests(c -> c
+                        .requestMatchers("/api/v1/users/swagger/**",
+                                "/api/v1/users/swagger",
+                                "/api/v1/users/swagger-ui/**",
+                                "/api/v1/users/v3/api-docs/**").permitAll()
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .build();

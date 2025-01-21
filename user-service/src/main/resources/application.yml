@@ -29,6 +29,13 @@ spring:
             trusted:
               packages: "*"
 
+spring-doc:
+  swagger-ui:
+    path: /api/v1/users/swagger
+  api-docs:
+    path: /api/v1/users/v3/api-docs
+  default-produces-media-type: application/json
+
 user:
   event:
     topic:
